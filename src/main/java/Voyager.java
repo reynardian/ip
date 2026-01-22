@@ -10,63 +10,37 @@ class Task {
         this.isDone = false;
     }
 
-    public void mark() {
-        this.isDone = true;
-    }
-
-    public void unmark() {
-        this.isDone = false;
-    }
-
-    public String getStatusIcon() {
-        return isDone ? "[X]" : "[ ]";
-    }
+    public void mark() { this.isDone = true; }
+    public void unmark() { this.isDone = false; }
+    public String getStatusIcon() { return isDone ? "[X]" : "[ ]"; }
 
     @Override
-    public String toString() {
-        return getStatusIcon() + " " + description;
-    }
+    public String toString() { return getStatusIcon() + " " + description; }
 }
 
 class ToDo extends Task {
-    public ToDo(String description) {
-        super(description);
-    }
-
+    public ToDo(String description) { super(description); }
     @Override
-    public String toString() {
-        return "[T]" + super.toString();
-    }
+    public String toString() { return "[T]" + super.toString(); }
 }
 
 class Deadline extends Task {
     protected String by;
-
-    public Deadline(String description, String by) {
-        super(description);
-        this.by = by;
-    }
-
+    public Deadline(String description, String by) { super(description); this.by = by; }
     @Override
-    public String toString() {
-        return "[D]" + super.toString() + " (by: " + by + ")";
-    }
+    public String toString() { return "[D]" + super.toString() + " (by: " + by + ")"; }
 }
 
 class Event extends Task {
     protected String from;
     protected String to;
-
-    public Event(String description, String from, String to) {
-        super(description);
-        this.from = from;
-        this.to = to;
-    }
-
+    public Event(String description, String from, String to) { super(description); this.from = from; this.to = to; }
     @Override
-    public String toString() {
-        return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
-    }
+    public String toString() { return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")"; }
+}
+
+class VoyagerException extends Exception {
+    public VoyagerException(String message) { super(message); }
 }
 
 public class Voyager {
@@ -84,84 +58,107 @@ public class Voyager {
             String input = scanner.nextLine();
             System.out.println(line);
 
-            if (input.equalsIgnoreCase("bye")) {
-                System.out.println("Bye. Hope to see you again soon!");
-                System.out.println(line);
-                break;
-            } else if (input.equalsIgnoreCase("list")) {
-                if (tasks.isEmpty()) {
-                    System.out.println("Your task list is empty.");
+            try {
+                if (input.equalsIgnoreCase("bye")) {
+                    System.out.println("Bye. Hope to see you again soon!");
+                    System.out.println(line);
+                    break;
+                } else if (input.equalsIgnoreCase("list")) {
+                    if (tasks.isEmpty()) {
+                        System.out.println("Your task list is empty.");
+                    } else {
+                        System.out.println("Here are the tasks in your list:");
+                        for (int i = 0; i < tasks.size(); i++) {
+                            System.out.println((i + 1) + "." + tasks.get(i));
+                        }
+                    }
+                } else if (input.toLowerCase().startsWith("mark ")) {
+                    markTask(tasks, input);
+                } else if (input.toLowerCase().startsWith("unmark ")) {
+                    unmarkTask(tasks, input);
+                } else if (input.toLowerCase().startsWith("todo ")) {
+                    addToDo(tasks, input);
+                } else if (input.equalsIgnoreCase("todo")) {
+                    throw new VoyagerException("OOPS!!! The description of a todo cannot be empty.");
+                } else if (input.toLowerCase().startsWith("deadline ")) {
+                    addDeadline(tasks, input);
+                } else if (input.toLowerCase().startsWith("event ")) {
+                    addEvent(tasks, input);
                 } else {
-                    System.out.println("Here are the tasks in your list:");
-                    for (int i = 0; i < tasks.size(); i++) {
-                        System.out.println((i + 1) + "." + tasks.get(i));
-                    }
+                    throw new VoyagerException("OOPS!!! I'm sorry, but I don't know what that means :-(");
                 }
-            } else if (input.toLowerCase().startsWith("mark ")) {
-                try {
-                    int index = Integer.parseInt(input.split(" ")[1]) - 1;
-                    if (index >= 0 && index < tasks.size()) {
-                        tasks.get(index).mark();
-                        System.out.println("Nice! I've marked this task as done:");
-                        System.out.println("  " + tasks.get(index));
-                    } else {
-                        System.out.println("Invalid task number!");
-                    }
-                } catch (Exception e) {
-                    System.out.println("Please provide a valid task number after 'mark'.");
-                }
-            } else if (input.toLowerCase().startsWith("unmark ")) {
-                try {
-                    int index = Integer.parseInt(input.split(" ")[1]) - 1;
-                    if (index >= 0 && index < tasks.size()) {
-                        tasks.get(index).unmark();
-                        System.out.println("OK, I've marked this task as not done yet:");
-                        System.out.println("  " + tasks.get(index));
-                    } else {
-                        System.out.println("Invalid task number!");
-                    }
-                } catch (Exception e) {
-                    System.out.println("Please provide a valid task number after 'unmark'.");
-                }
-            } else if (input.toLowerCase().startsWith("todo ")) {
-                String desc = input.substring(5).trim();
-                Task todo = new ToDo(desc);
-                tasks.add(todo);
-                System.out.println("Got it. I've added this task:");
-                System.out.println("  " + todo);
-                System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-            } else if (input.toLowerCase().startsWith("deadline ")) {
-                try {
-                    String[] parts = input.substring(9).split("/by");
-                    String desc = parts[0].trim();
-                    String by = parts[1].trim();
-                    Task deadline = new Deadline(desc, by);
-                    tasks.add(deadline);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + deadline);
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                } catch (Exception e) {
-                    System.out.println("Please use the format: deadline [description] /by [time]");
-                }
-            } else if (input.toLowerCase().startsWith("event ")) {
-                try {
-                    String[] parts = input.substring(6).split("/from|/to");
-                    String desc = parts[0].trim();
-                    String from = parts[1].trim();
-                    String to = parts[2].trim();
-                    Task event = new Event(desc, from, to);
-                    tasks.add(event);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + event);
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                } catch (Exception e) {
-                    System.out.println("Please use the format: event [description] /from [start] /to [end]");
-                }
-            } else {
-                System.out.println("Unknown command. Try todo, deadline, event, list, mark, unmark, or bye.");
+            } catch (VoyagerException e) {
+                System.out.println(e.getMessage());
             }
         }
 
         scanner.close();
+    }
+
+    private static void addToDo(ArrayList<Task> tasks, String input) throws VoyagerException {
+        String desc = input.substring(5).trim();
+        if (desc.isEmpty()) throw new VoyagerException("OOPS!!! The description of a todo cannot be empty.");
+        Task todo = new ToDo(desc);
+        tasks.add(todo);
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + todo);
+        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+    }
+
+    private static void addDeadline(ArrayList<Task> tasks, String input) throws VoyagerException {
+        try {
+            String[] parts = input.substring(9).split("/by");
+            String desc = parts[0].trim();
+            String by = parts[1].trim();
+            if (desc.isEmpty() || by.isEmpty()) throw new VoyagerException("OOPS!!! Deadline must have a description and a /by time.");
+            Task deadline = new Deadline(desc, by);
+            tasks.add(deadline);
+            System.out.println("Got it. I've added this task:");
+            System.out.println("  " + deadline);
+            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+        } catch (Exception e) {
+            throw new VoyagerException("OOPS!!! Please use the format: deadline [description] /by [time]");
+        }
+    }
+
+    private static void addEvent(ArrayList<Task> tasks, String input) throws VoyagerException {
+        try {
+            String[] parts = input.substring(6).split("/from|/to");
+            String desc = parts[0].trim();
+            String from = parts[1].trim();
+            String to = parts[2].trim();
+            if (desc.isEmpty() || from.isEmpty() || to.isEmpty()) throw new VoyagerException("OOPS!!! Event must have a description, /from and /to.");
+            Task event = new Event(desc, from, to);
+            tasks.add(event);
+            System.out.println("Got it. I've added this task:");
+            System.out.println("  " + event);
+            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+        } catch (Exception e) {
+            throw new VoyagerException("OOPS!!! Please use the format: event [description] /from [start] /to [end]");
+        }
+    }
+
+    private static void markTask(ArrayList<Task> tasks, String input) throws VoyagerException {
+        try {
+            int index = Integer.parseInt(input.split(" ")[1]) - 1;
+            if (index < 0 || index >= tasks.size()) throw new VoyagerException("OOPS!!! Invalid task number to mark.");
+            tasks.get(index).mark();
+            System.out.println("Nice! I've marked this task as done:");
+            System.out.println("  " + tasks.get(index));
+        } catch (Exception e) {
+            throw new VoyagerException("OOPS!!! Please provide a valid task number after 'mark'.");
+        }
+    }
+
+    private static void unmarkTask(ArrayList<Task> tasks, String input) throws VoyagerException {
+        try {
+            int index = Integer.parseInt(input.split(" ")[1]) - 1;
+            if (index < 0 || index >= tasks.size()) throw new VoyagerException("OOPS!!! Invalid task number to unmark.");
+            tasks.get(index).unmark();
+            System.out.println("OK, I've marked this task as not done yet:");
+            System.out.println("  " + tasks.get(index));
+        } catch (Exception e) {
+            throw new VoyagerException("OOPS!!! Please provide a valid task number after 'unmark'.");
+        }
     }
 }
