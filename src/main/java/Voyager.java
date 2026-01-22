@@ -64,18 +64,13 @@ public class Voyager {
                     System.out.println(line);
                     break;
                 } else if (input.equalsIgnoreCase("list")) {
-                    if (tasks.isEmpty()) {
-                        System.out.println("Your task list is empty.");
-                    } else {
-                        System.out.println("Here are the tasks in your list:");
-                        for (int i = 0; i < tasks.size(); i++) {
-                            System.out.println((i + 1) + "." + tasks.get(i));
-                        }
-                    }
+                    listTasks(tasks);
                 } else if (input.toLowerCase().startsWith("mark ")) {
                     markTask(tasks, input);
                 } else if (input.toLowerCase().startsWith("unmark ")) {
                     unmarkTask(tasks, input);
+                } else if (input.toLowerCase().startsWith("delete ")) {
+                    deleteTask(tasks, input);
                 } else if (input.toLowerCase().startsWith("todo ")) {
                     addToDo(tasks, input);
                 } else if (input.equalsIgnoreCase("todo")) {
@@ -93,6 +88,17 @@ public class Voyager {
         }
 
         scanner.close();
+    }
+
+    private static void listTasks(ArrayList<Task> tasks) {
+        if (tasks.isEmpty()) {
+            System.out.println("Your task list is empty.");
+        } else {
+            System.out.println("Here are the tasks in your list:");
+            for (int i = 0; i < tasks.size(); i++) {
+                System.out.println((i + 1) + "." + tasks.get(i));
+            }
+        }
     }
 
     private static void addToDo(ArrayList<Task> tasks, String input) throws VoyagerException {
@@ -159,6 +165,19 @@ public class Voyager {
             System.out.println("  " + tasks.get(index));
         } catch (Exception e) {
             throw new VoyagerException("OOPS!!! Please provide a valid task number after 'unmark'.");
+        }
+    }
+
+    private static void deleteTask(ArrayList<Task> tasks, String input) throws VoyagerException {
+        try {
+            int index = Integer.parseInt(input.split(" ")[1]) - 1;
+            if (index < 0 || index >= tasks.size()) throw new VoyagerException("OOPS!!! Invalid task number to delete.");
+            Task removed = tasks.remove(index);
+            System.out.println("Noted. I've removed this task:");
+            System.out.println("  " + removed);
+            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+        } catch (Exception e) {
+            throw new VoyagerException("OOPS!!! Please provide a valid task number after 'delete'.");
         }
     }
 }
