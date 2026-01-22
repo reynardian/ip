@@ -2,8 +2,8 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 class Task {
-    private String description;
-    private boolean isDone;
+    protected String description;
+    protected boolean isDone;
 
     public Task(String description) {
         this.description = description;
@@ -22,13 +22,50 @@ class Task {
         return isDone ? "[X]" : "[ ]";
     }
 
-    public String getDescription() {
-        return description;
+    @Override
+    public String toString() {
+        return getStatusIcon() + " " + description;
+    }
+}
+
+class ToDo extends Task {
+    public ToDo(String description) {
+        super(description);
     }
 
     @Override
     public String toString() {
-        return getStatusIcon() + " " + description;
+        return "[T]" + super.toString();
+    }
+}
+
+class Deadline extends Task {
+    protected String by;
+
+    public Deadline(String description, String by) {
+        super(description);
+        this.by = by;
+    }
+
+    @Override
+    public String toString() {
+        return "[D]" + super.toString() + " (by: " + by + ")";
+    }
+}
+
+class Event extends Task {
+    protected String from;
+    protected String to;
+
+    public Event(String description, String from, String to) {
+        super(description);
+        this.from = from;
+        this.to = to;
+    }
+
+    @Override
+    public String toString() {
+        return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
     }
 }
 
@@ -36,7 +73,6 @@ public class Voyager {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         String line = "_".repeat(60);
-
         ArrayList<Task> tasks = new ArrayList<>();
 
         System.out.println(line);
@@ -87,10 +123,42 @@ public class Voyager {
                 } catch (Exception e) {
                     System.out.println("Please provide a valid task number after 'unmark'.");
                 }
+            } else if (input.toLowerCase().startsWith("todo ")) {
+                String desc = input.substring(5).trim();
+                Task todo = new ToDo(desc);
+                tasks.add(todo);
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + todo);
+                System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+            } else if (input.toLowerCase().startsWith("deadline ")) {
+                try {
+                    String[] parts = input.substring(9).split("/by");
+                    String desc = parts[0].trim();
+                    String by = parts[1].trim();
+                    Task deadline = new Deadline(desc, by);
+                    tasks.add(deadline);
+                    System.out.println("Got it. I've added this task:");
+                    System.out.println("  " + deadline);
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                } catch (Exception e) {
+                    System.out.println("Please use the format: deadline [description] /by [time]");
+                }
+            } else if (input.toLowerCase().startsWith("event ")) {
+                try {
+                    String[] parts = input.substring(6).split("/from|/to");
+                    String desc = parts[0].trim();
+                    String from = parts[1].trim();
+                    String to = parts[2].trim();
+                    Task event = new Event(desc, from, to);
+                    tasks.add(event);
+                    System.out.println("Got it. I've added this task:");
+                    System.out.println("  " + event);
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                } catch (Exception e) {
+                    System.out.println("Please use the format: event [description] /from [start] /to [end]");
+                }
             } else {
-                Task newTask = new Task(input);
-                tasks.add(newTask);
-                System.out.println("added: " + input);
+                System.out.println("Unknown command. Try todo, deadline, event, list, mark, unmark, or bye.");
             }
         }
 
