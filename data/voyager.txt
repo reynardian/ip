@@ -1,2 +1,3 @@
 E | 1 | Debussy Rehearsal | 09.00 | 12.00
 T | 1 | Score Study
+D | 0 | Return book | 2019-12-02
