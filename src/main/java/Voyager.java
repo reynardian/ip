@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * Represents a generic task with a description and completion status.
@@ -82,7 +85,10 @@ class ToDo extends Task {
  */
 class Deadline extends Task {
 
-    private String by;
+    private static final DateTimeFormatter OUTPUT_FORMAT =
+            DateTimeFormatter.ofPattern("MMM dd yyyy");
+    private LocalDate by;
+
 
     /**
      * Creates a deadline task.
@@ -90,17 +96,18 @@ class Deadline extends Task {
      * @param description Task description.
      * @param by Deadline time.
      */
-    public Deadline(String description, String by) {
+    public Deadline(String description, LocalDate by) {
         super(description);
         this.by = by;
     }
-    public String getBy() {
+    public LocalDate getBy() {
         return by;
     }
 
     @Override
     public String toString() {
-        return "[D]" + super.toString() + " (by: " + by + ")";
+        return "[D]" + super.toString()
+                + " (by: " + by.format(OUTPUT_FORMAT) + ")";
     }
 }
 
@@ -242,15 +249,19 @@ public class Voyager {
     }
 
     /** Adds a deadline task to the list. */
-    private static void addDeadline(List<Task> tasks, String input) throws VoyagerException {
+    private static void addDeadline(List<Task> tasks, String input)
+            throws VoyagerException {
         try {
             String[] parts = input.substring(9).split("/by");
             String desc = parts[0].trim();
-            String by = parts[1].trim();
+            String dateString = parts[1].trim();
 
-            if (desc.isEmpty() || by.isEmpty()) {
-                throw new VoyagerException("OOPS!!! Deadline must have a description and a /by time.");
+            if (desc.isEmpty() || dateString.isEmpty()) {
+                throw new VoyagerException(
+                        "OOPS!!! Deadline must have a description and a date.");
             }
+
+            LocalDate by = LocalDate.parse(dateString);
 
             Task deadline = new Deadline(desc, by);
             tasks.add(deadline);
@@ -259,8 +270,13 @@ public class Voyager {
             System.out.println("Got it. I've added this task:");
             System.out.println("  " + deadline);
             System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+
+        } catch (DateTimeParseException e) {
+            throw new VoyagerException(
+                    "OOPS!!! Please use date format yyyy-mm-dd.");
         } catch (Exception e) {
-            throw new VoyagerException("OOPS!!! Please use the format: deadline [description] /by [time]");
+            throw new VoyagerException(
+                    "OOPS!!! Please use the format: deadline [description] /by yyyy-mm-dd");
         }
     }
 
@@ -374,7 +390,8 @@ public class Voyager {
                         task = new ToDo(desc);
                         break;
                     case "D":
-                        task = new Deadline(desc, parts[3]);
+                        LocalDate by = LocalDate.parse(parts[3]);
+                        task = new Deadline(desc, by);
                         break;
                     case "E":
                         task = new Event(desc, parts[3], parts[4]);
@@ -434,8 +451,7 @@ public class Voyager {
         } else if (task instanceof Deadline) {
             Deadline d = (Deadline) task;
             return "D | " + status + " | "
-                    + task.getDescription()
-                    + " | " + d.getBy();
+                    + task.getDescription() + " | " + d.getBy();
         } else if (task instanceof Event) {
             Event e = (Event) task;
             return "E | " + status + " | "
