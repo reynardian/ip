@@ -12,8 +12,8 @@ public class Event extends voyager.task.Task {
      * Creates an event task.
      *
      * @param description Task description.
-     * @param from Start time.
-     * @param to End time.
+     * @param from        Start time.
+     * @param to          End time.
      */
     public Event(String description, String from, String to) {
         super(description);

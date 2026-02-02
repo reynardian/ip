@@ -16,7 +16,7 @@ public class Deadline extends voyager.task.Task {
      * Creates a deadline task.
      *
      * @param description Task description.
-     * @param by Deadline time.
+     * @param by          Deadline time.
      */
     public Deadline(String description, LocalDate by) {
         super(description);
