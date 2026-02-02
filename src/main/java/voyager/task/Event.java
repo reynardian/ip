@@ -13,9 +13,9 @@ public class Event extends voyager.task.Task {
     /**
      * Initializes a new event task with a description and a time range.
      *
-     * @param description The description of the event.
-     * @param from The start time/date of the event.
-     * @param to The end time/date of the event.
+     * @param description Task description.
+     * @param from        Start time.
+     * @param to          End time.
      */
     public Event(String description, String from, String to) {
         super(description);
@@ -53,3 +53,4 @@ public class Event extends voyager.task.Task {
         return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
     }
 }
+
