@@ -4,11 +4,13 @@ import voyager.task.Event;
 import voyager.task.Deadline;
 import voyager.exception.VoyagerException;
 import voyager.task.Storage;
+import voyager.task.Task;
 import voyager.ui.Parser;
 import voyager.ui.Ui;
 
 import java.util.ArrayList;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Main entry point for the Voyager task management program.
@@ -103,6 +105,23 @@ public class Voyager {
                         voyager.task.Task removed = taskList.remove(Integer.parseInt(args) - 1);
                         storage.save(taskList.getAll());
                         ui.showTaskRemoved(removed, taskList.size());
+                        break;
+
+                    case "find":
+                        if (args.isEmpty()) {
+                            throw new VoyagerException("OOPS!!! The search keyword cannot be empty.");
+                        }
+
+                        List<voyager.task.Task> allTasks = taskList.getAll();
+                        List<Task> matchingTasks = new ArrayList<>();
+
+                        for (voyager.task.Task task : allTasks) {
+                            if (task.getDescription().toLowerCase().contains(args.toLowerCase())) {
+                                matchingTasks.add(task);
+                            }
+                        }
+
+                        ui.showFoundTasks(matchingTasks);
                         break;
 
                     default:
