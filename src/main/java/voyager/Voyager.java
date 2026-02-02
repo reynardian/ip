@@ -96,6 +96,23 @@ public class Voyager {
                         ui.showTaskRemoved(removed, taskList.size());
                         break;
 
+                    case "find":
+                        if (args.isEmpty()) {
+                            throw new VoyagerException("OOPS!!! The search keyword cannot be empty.");
+                        }
+
+                        List<voyager.task.Task> allTasks = taskList.getAll();
+                        List<voyager.task.Task> matchingTasks = new ArrayList<>();
+
+                        for (voyager.task.Task task : allTasks) {
+                            if (task.getDescription().toLowerCase().contains(args.toLowerCase())) {
+                                matchingTasks.add(task);
+                            }
+                        }
+
+                        ui.showFoundTasks(matchingTasks);
+                        break;
+                        
                     default:
                         throw new VoyagerException(
                                 "OOPS!!! I'm sorry, but I don't know what that means :-(");

@@ -70,4 +70,21 @@ public class Ui {
             System.out.println((i + 1) + "." + tasks.get(i));
         }
     }
+
+    /**
+     * Displays the results of a search query to the user.
+     *
+     * @param tasks The list of tasks that matched the search keyword.
+     */
+    public void showFoundTasks(List<Task> tasks) {
+        if (tasks.isEmpty()) {
+            System.out.println("No matching tasks found in your list.");
+            return;
+        }
+
+        System.out.println("Here are the matching tasks in your list:");
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println((i + 1) + "." + tasks.get(i));
+        }
+    }
 }
