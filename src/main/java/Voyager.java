@@ -162,205 +162,117 @@ class VoyagerException extends Exception {
 }
 
 /**
- * Main entry point for the Voyager task management program.
+ * Represents a list of tasks and provides operations to modify it.
  */
-public class Voyager {
-    private static final String LINE = "_".repeat(60);
-    private static final String DATA_FOLDER = "data";
-    private static final String DATA_FILE = DATA_FOLDER + File.separator + "voyager.txt";
+class TaskList {
+    private final List<Task> tasks;
 
     /**
-     * Runs the Voyager command loop.
-     *
-     * @param args Command-line arguments (unused).
+     * Creates an empty task list.
      */
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-
-        List<Task> tasks = new ArrayList<>();
-        loadTasks(tasks);
-
-        System.out.println(LINE);
-        System.out.println("Hello! I'm Voyager");
-        System.out.println("What can I do for you?");
-        System.out.println(LINE);
-
-        while (true) {
-            String input = scanner.nextLine();
-            System.out.println(LINE);
-
-            try {
-                if (input.equalsIgnoreCase("bye")) {
-                    System.out.println("Bye. Hope to see you again soon!");
-                    System.out.println(LINE);
-                    break;
-                } else if (input.equalsIgnoreCase("list")) {
-                    listTasks(tasks);
-                } else if (input.toLowerCase().startsWith("mark ")) {
-                    markTask(tasks, input);
-                } else if (input.toLowerCase().startsWith("unmark ")) {
-                    unmarkTask(tasks, input);
-                } else if (input.toLowerCase().startsWith("delete ")) {
-                    deleteTask(tasks, input);
-                } else if (input.toLowerCase().startsWith("todo ")) {
-                    addToDo(tasks, input);
-                } else if (input.equalsIgnoreCase("todo")) {
-                    throw new VoyagerException("OOPS!!! The description of a todo cannot be empty.");
-                } else if (input.toLowerCase().startsWith("deadline ")) {
-                    addDeadline(tasks, input);
-                } else if (input.toLowerCase().startsWith("event ")) {
-                    addEvent(tasks, input);
-                } else {
-                    throw new VoyagerException("OOPS!!! I'm sorry, but I don't know what that means :-(");
-                }
-            } catch (VoyagerException e) {
-                System.out.println(e.getMessage());
-            }
-        }
-
-        scanner.close();
+    public TaskList() {
+        this.tasks = new ArrayList<>();
     }
 
-    /** Lists all tasks in the task list. */
-    private static void listTasks(List<Task> tasks) {
-        if (tasks.isEmpty()) {
-            System.out.println("Your task list is empty.");
-        } else {
-            System.out.println("Here are the tasks in your list:");
-            for (int i = 0; i < tasks.size(); i++) {
-                System.out.println((i + 1) + "." + tasks.get(i));
-            }
-        }
+    /**
+     * Creates a task list with existing tasks.
+     *
+     * @param tasks Existing tasks.
+     */
+    public TaskList(List<Task> tasks) {
+        this.tasks = tasks;
     }
 
-    /** Adds a todo task to the list. */
-    private static void addToDo(List<Task> tasks, String input) throws VoyagerException {
-        String desc = input.substring(5).trim();
-        if (desc.isEmpty()) {
-            throw new VoyagerException("OOPS!!! The description of a todo cannot be empty.");
-        }
-        Task todo = new ToDo(desc);
-        tasks.add(todo);
-        saveTasks(tasks);
-
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + todo);
-        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+    /**
+     * Returns all tasks.
+     *
+     * @return Task list.
+     */
+    public List<Task> getAll() {
+        return tasks;
     }
 
-    /** Adds a deadline task to the list. */
-    private static void addDeadline(List<Task> tasks, String input)
-            throws VoyagerException {
-        try {
-            String[] parts = input.substring(9).split("/by");
-            String desc = parts[0].trim();
-            String dateString = parts[1].trim();
-
-            if (desc.isEmpty() || dateString.isEmpty()) {
-                throw new VoyagerException(
-                        "OOPS!!! Deadline must have a description and a date.");
-            }
-
-            LocalDate by = LocalDate.parse(dateString);
-
-            Task deadline = new Deadline(desc, by);
-            tasks.add(deadline);
-            saveTasks(tasks);
-
-            System.out.println("Got it. I've added this task:");
-            System.out.println("  " + deadline);
-            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-
-        } catch (DateTimeParseException e) {
-            throw new VoyagerException(
-                    "OOPS!!! Please use date format yyyy-mm-dd.");
-        } catch (Exception e) {
-            throw new VoyagerException(
-                    "OOPS!!! Please use the format: deadline [description] /by yyyy-mm-dd");
-        }
+    /**
+     * Adds a task to the list.
+     *
+     * @param task Task to add.
+     */
+    public void add(Task task) {
+        tasks.add(task);
     }
 
-    /** Adds an event task to the list. */
-    private static void addEvent(List<Task> tasks, String input) throws VoyagerException {
-        try {
-            String[] parts = input.substring(6).split("/from|/to");
-            String desc = parts[0].trim();
-            String from = parts[1].trim();
-            String to = parts[2].trim();
-
-            if (desc.isEmpty() || from.isEmpty() || to.isEmpty()) {
-                throw new VoyagerException("OOPS!!! Event must have a description, /from and /to.");
-            }
-
-            Task event = new Event(desc, from, to);
-            tasks.add(event);
-            saveTasks(tasks);
-
-            System.out.println("Got it. I've added this task:");
-            System.out.println("  " + event);
-            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-        } catch (Exception e) {
-            throw new VoyagerException("OOPS!!! Please use the format: event [description] /from [start] /to [end]");
-        }
+    /**
+     * Removes a task at the given index.
+     *
+     * @param index Index to remove (0-based).
+     * @return Removed task.
+     * @throws VoyagerException If index is invalid.
+     */
+    public Task remove(int index) throws VoyagerException {
+        checkIndex(index);
+        return tasks.remove(index);
     }
 
-    /** Marks a specific task as done by index. */
-    private static void markTask(List<Task> tasks, String input) throws VoyagerException {
-        try {
-            int index = Integer.parseInt(input.split(" ")[1]) - 1;
-            if (index < 0 || index >= tasks.size()) {
-                throw new VoyagerException("OOPS!!! Invalid task number to mark.");
-            }
-            tasks.get(index).mark();
-            saveTasks(tasks);
-            System.out.println("Nice! I've marked this task as done:");
-            System.out.println("  " + tasks.get(index));
-        } catch (Exception e) {
-            throw new VoyagerException("OOPS!!! Please provide a valid task number after 'mark'.");
-        }
+    /**
+     * Marks a task as done.
+     *
+     * @param index Index to mark (0-based).
+     * @return Marked task.
+     * @throws VoyagerException If index is invalid.
+     */
+    public Task mark(int index) throws VoyagerException {
+        checkIndex(index);
+        Task task = tasks.get(index);
+        task.mark();
+        return task;
     }
 
-    /** Unmarks a specific task as not done by index. */
-    private static void unmarkTask(List<Task> tasks, String input) throws VoyagerException {
-        try {
-            int index = Integer.parseInt(input.split(" ")[1]) - 1;
-            if (index < 0 || index >= tasks.size()) {
-                throw new VoyagerException("OOPS!!! Invalid task number to unmark.");
-            }
-            tasks.get(index).unmark();
-            saveTasks(tasks);
-            System.out.println("OK, I've marked this task as not done yet:");
-            System.out.println("  " + tasks.get(index));
-        } catch (Exception e) {
-            throw new VoyagerException("OOPS!!! Please provide a valid task number after 'unmark'.");
-        }
+    /**
+     * Unmarks a task as not done.
+     *
+     * @param index Index to unmark (0-based).
+     * @return Unmarked task.
+     * @throws VoyagerException If index is invalid.
+     */
+    public Task unmark(int index) throws VoyagerException {
+        checkIndex(index);
+        Task task = tasks.get(index);
+        task.unmark();
+        return task;
     }
 
-    /** Deletes a task at the given index. */
-    private static void deleteTask(List<Task> tasks, String input) throws VoyagerException {
-        try {
-            int index = Integer.parseInt(input.split(" ")[1]) - 1;
-            if (index < 0 || index >= tasks.size()) {
-                throw new VoyagerException("OOPS!!! Invalid task number to delete.");
-            }
+    /**
+     * Returns number of tasks.
+     *
+     * @return Task count.
+     */
+    public int size() {
+        return tasks.size();
+    }
 
-            Task removed = tasks.remove(index);
-            saveTasks(tasks);
-            System.out.println("Noted. I've removed this task:");
-            System.out.println("  " + removed);
-            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-        } catch (Exception e) {
-            throw new VoyagerException("OOPS!!! Please provide a valid task number after 'delete'.");
+    /**
+     * Checks if index is valid.
+     *
+     * @param index Index to check.
+     * @throws VoyagerException If index is out of bounds.
+     */
+    private void checkIndex(int index) throws VoyagerException {
+        if (index < 0 || index >= tasks.size()) {
+            throw new VoyagerException("OOPS!!! Invalid task number.");
         }
     }
+}
+
+class Storage {
+    private static final String DATA_FOLDER = "data";
+    private static final String DATA_FILE =
+            DATA_FOLDER + File.separator + "voyager.txt";
 
     /**
      * Loads tasks from the data file into the given task list.
      * Creates the data folder and file if they do not yet exist.
-     *
-     * @param tasks Task list to populate.
      */
-    private static void loadTasks(List<Task> tasks) {
+    public void loadTasks(List<Task> tasks) {
         try {
             File folder = new File(DATA_FOLDER);
             if (!folder.exists()) {
@@ -390,8 +302,7 @@ public class Voyager {
                         task = new ToDo(desc);
                         break;
                     case "D":
-                        LocalDate by = LocalDate.parse(parts[3]);
-                        task = new Deadline(desc, by);
+                        task = new Deadline(desc, LocalDate.parse(parts[3]));
                         break;
                     case "E":
                         task = new Event(desc, parts[3], parts[4]);
@@ -408,31 +319,25 @@ public class Voyager {
             }
 
             fileScanner.close();
-
         } catch (IOException e) {
             System.out.println("Error loading tasks.");
         }
     }
+
 
     /**
      * Saves all tasks in the list to the data file.
      *
      * @param tasks Task list to save.
      */
-    private static void saveTasks(List<Task> tasks) {
-        try {
-            FileWriter writer = new FileWriter(DATA_FILE);
+    public void save(List<Task> tasks) throws IOException {
+        FileWriter writer = new FileWriter(DATA_FILE);
 
-            for (Task task : tasks) {
-                writer.write(encodeTask(task)
-                        + System.lineSeparator());
-            }
-
-            writer.close();
-
-        } catch (IOException e) {
-            System.out.println("Error saving tasks.");
+        for (Task task : tasks) {
+            writer.write(encodeTask(task) + System.lineSeparator());
         }
+
+        writer.close();
     }
 
     /**
@@ -441,13 +346,11 @@ public class Voyager {
      * @param task Task to encode.
      * @return Encoded task string.
      */
-    private static String encodeTask(Task task) {
-        String status =
-                task.getStatusIcon().equals("[X]") ? "1" : "0";
+    private String encodeTask(Task task) {
+        String status = task.isDone() ? "1" : "0";
 
         if (task instanceof ToDo) {
-            return "T | " + status + " | "
-                    + task.getDescription();
+            return "T | " + status + " | " + task.getDescription();
         } else if (task instanceof Deadline) {
             Deadline d = (Deadline) task;
             return "D | " + status + " | "
@@ -461,6 +364,186 @@ public class Voyager {
         }
 
         return "";
+    }
+}
+
+class Parser {
+    public static String getCommandWord(String input) {
+        return input.trim().split(" ")[0].toLowerCase();
+    }
+
+    public static String getArguments(String input) {
+        String[] parts = input.trim().split(" ", 2);
+        return parts.length < 2 ? "" : parts[1];
+    }
+}
+
+class Ui {
+    private static final String LINE = "_".repeat(60);
+    private final Scanner scanner = new Scanner(System.in);
+
+    public void showWelcome() {
+        System.out.println(LINE);
+        System.out.println("Hello! I'm Voyager");
+        System.out.println("What can I do for you?");
+        System.out.println(LINE);
+    }
+
+    public void showGoodbye() {
+        System.out.println("Bye. Hope to see you again soon!");
+        System.out.println(LINE);
+    }
+
+    public String readCommand() {
+        return scanner.nextLine();
+    }
+
+    public void showLine() {
+        System.out.println(LINE);
+    }
+
+    public void showError(String message) {
+        System.out.println(message);
+    }
+
+    public void showMessage(String message) {
+        System.out.println(message);
+    }
+
+    public void showTaskAdded(Task task, int size) {
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + task);
+        System.out.println("Now you have " + size + " tasks in the list.");
+    }
+
+    public void showTaskRemoved(Task task, int size) {
+        System.out.println("Noted. I've removed this task:");
+        System.out.println("  " + task);
+        System.out.println("Now you have " + size + " tasks in the list.");
+    }
+
+    public void showTaskMarked(Task task) {
+        System.out.println("Nice! I've marked this task as done:");
+        System.out.println("  " + task);
+    }
+
+    public void showTaskUnmarked(Task task) {
+        System.out.println("OK, I've marked this task as not done yet:");
+        System.out.println("  " + task);
+    }
+
+    public void showList(List<Task> tasks) {
+        if (tasks.isEmpty()) {
+            System.out.println("Your task list is empty.");
+            return;
+        }
+
+        System.out.println("Here are the tasks in your list:");
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println((i + 1) + "." + tasks.get(i));
+        }
+    }
+}
+
+/**
+ * Main entry point for the Voyager task management program.
+ */
+public class Voyager {
+    private final TaskList taskList;
+    private final Storage storage;
+    private final Ui ui;
+
+    public Voyager() {
+        ui = new Ui();
+        storage = new Storage();
+        taskList = new TaskList(new ArrayList<>());
+
+        storage.loadTasks(taskList.getAll());
+    }
+
+    public void run() {
+        ui.showWelcome();
+
+        while (true) {
+            String input = ui.readCommand();
+            ui.showLine();
+
+            try {
+                String command = Parser.getCommandWord(input);
+                String args = Parser.getArguments(input);
+
+                switch (command) {
+                    case "bye":
+                        ui.showGoodbye();
+                        return;
+
+                    case "list":
+                        ui.showList(taskList.getAll());
+                        break;
+
+                    case "todo":
+                        if (args.isEmpty()) {
+                            throw new VoyagerException(
+                                    "OOPS!!! The description of a todo cannot be empty.");
+                        }
+                        Task todo = new ToDo(args);
+                        taskList.add(todo);
+                        storage.save(taskList.getAll());
+                        ui.showTaskAdded(todo, taskList.size());
+                        break;
+
+                    case "deadline":
+                        String[] dParts = args.split("/by");
+                        Task deadline = new Deadline(
+                                dParts[0].trim(),
+                                LocalDate.parse(dParts[1].trim()));
+                        taskList.add(deadline);
+                        storage.save(taskList.getAll());
+                        ui.showTaskAdded(deadline, taskList.size());
+                        break;
+
+                    case "event":
+                        String[] eParts = args.split("/from|/to");
+                        Task event = new Event(
+                                eParts[0].trim(),
+                                eParts[1].trim(),
+                                eParts[2].trim());
+                        taskList.add(event);
+                        storage.save(taskList.getAll());
+                        ui.showTaskAdded(event, taskList.size());
+                        break;
+
+                    case "mark":
+                        Task marked = taskList.mark(Integer.parseInt(args) - 1);
+                        storage.save(taskList.getAll());
+                        ui.showTaskMarked(marked);
+                        break;
+
+                    case "unmark":
+                        Task unmarked = taskList.unmark(Integer.parseInt(args) - 1);
+                        storage.save(taskList.getAll());
+                        ui.showTaskUnmarked(unmarked);
+                        break;
+
+                    case "delete":
+                        Task removed = taskList.remove(Integer.parseInt(args) - 1);
+                        storage.save(taskList.getAll());
+                        ui.showTaskRemoved(removed, taskList.size());
+                        break;
+
+                    default:
+                        throw new VoyagerException(
+                                "OOPS!!! I'm sorry, but I don't know what that means :-(");
+                }
+
+            } catch (Exception e) {
+                ui.showError(e.getMessage());
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        new Voyager().run();
     }
 }
 
