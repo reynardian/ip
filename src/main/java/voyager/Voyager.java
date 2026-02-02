@@ -12,12 +12,17 @@ import java.time.LocalDate;
 
 /**
  * Main entry point for the Voyager task management program.
+ * Orchestrates the user interface, storage, and task list operations.
  */
 public class Voyager {
     private final voyager.task.TaskList taskList;
     private final Storage storage;
     private final Ui ui;
 
+    /**
+     * Initializes a new Voyager session.
+     * Sets up the UI, storage, and loads existing tasks from disk.
+     */
     public Voyager() {
         ui = new Ui();
         storage = new Storage();
@@ -26,6 +31,10 @@ public class Voyager {
         storage.loadTasks(taskList.getAll());
     }
 
+    /**
+     * Starts the main program loop.
+     * Processes user input until the "bye" command is received.
+     */
     public void run() {
         ui.showWelcome();
 
@@ -107,8 +116,11 @@ public class Voyager {
         }
     }
 
+    /**
+     * Entry point for launching the Voyager application.
+     * * @param args Command line arguments (not used).
+     */
     public static void main(String[] args) {
         new Voyager().run();
     }
 }
-

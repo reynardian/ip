@@ -7,14 +7,20 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Handles the loading and saving of tasks to a local text file.
+ * This class ensures that task data persists across different sessions of the application.
+ */
 public class Storage {
     private static final String DATA_FOLDER = "data";
     private static final String DATA_FILE =
             DATA_FOLDER + File.separator + "voyager.txt";
 
     /**
-     * Loads tasks from the data file into the given task list.
-     * Creates the data folder and file if they do not yet exist.
+     * Loads tasks from the data file into the provided task list.
+     * If the data folder or file does not exist, they will be created.
+     *
+     * @param tasks The list where loaded tasks will be stored.
      */
     public void loadTasks(List<Task> tasks) {
         try {
@@ -70,9 +76,10 @@ public class Storage {
 
 
     /**
-     * Saves all tasks in the list to the data file.
+     * Saves all tasks currently in the list to the hard disk.
      *
-     * @param tasks Task list to save.
+     * @param tasks The list of tasks to be written to the file.
+     * @throws IOException If there is an error writing to the data file.
      */
     public void save(List<voyager.task.Task> tasks) throws IOException {
         FileWriter writer = new FileWriter(DATA_FILE);
@@ -85,10 +92,10 @@ public class Storage {
     }
 
     /**
-     * Converts a task into its file storage representation.
+     * Converts a Task object into a formatted string suitable for file storage.
      *
-     * @param task Task to encode.
-     * @return Encoded task string.
+     * @param task The task to be encoded.
+     * @return A pipe-separated string representing the task.
      */
     private String encodeTask(voyager.task.Task task) {
         String status = task.isDone() ? "1" : "0";
