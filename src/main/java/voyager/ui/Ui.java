@@ -74,29 +74,33 @@ public class Ui {
      * Returns the entire list of tasks as a single formatted String.
      */
     public String showList(List<Task> tasks) {
-        if (tasks.isEmpty()) {
-            return "Your task list is empty.";
-        }
-
-        StringBuilder sb = new StringBuilder("Here are the tasks in your list:\n");
-        for (int i = 0; i < tasks.size(); i++) {
-            sb.append((i + 1)).append(".").append(tasks.get(i));
-            if (i < tasks.size() - 1) {
-                sb.append("\n");
-            }
-        }
-        return sb.toString();
+        return formatTaskList(tasks,
+                "Here are the tasks in your list:",
+                "Your task list is empty.");
     }
 
     /**
      * Returns the matching search results as a single formatted String.
      */
     public String showFoundTasks(List<Task> tasks) {
+        return formatTaskList(tasks,
+                "Here are the matching tasks in your list:",
+                "No matching tasks found in your list.");
+    }
+
+    /**
+     * Formats a list of tasks into a numbered string with a specific header.
+     * * @param tasks The list of tasks to display.
+     * @param header The introductory text (e.g., "Here are the tasks...").
+     * @param emptyMessage The message to show if the list is empty.
+     * @return A formatted multi-line string.
+     */
+    private String formatTaskList(List<Task> tasks, String header, String emptyMessage) {
         if (tasks.isEmpty()) {
-            return "No matching tasks found in your list.";
+            return emptyMessage;
         }
 
-        StringBuilder sb = new StringBuilder("Here are the matching tasks in your list:\n");
+        StringBuilder sb = new StringBuilder(header + "\n");
         for (int i = 0; i < tasks.size(); i++) {
             sb.append((i + 1)).append(".").append(tasks.get(i));
             if (i < tasks.size() - 1) {
