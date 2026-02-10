@@ -1,6 +1,7 @@
 package voyager;
 
 import voyager.exception.VoyagerException;
+import voyager.task.Deadline;
 import voyager.task.Event;
 import voyager.task.Storage;
 import voyager.task.Task;
@@ -84,6 +85,12 @@ public class Voyager {
 
                 case "find":
                     return handleFind(args);
+
+                case "sort":
+                    return handleSortByName();
+
+                case "sortdate":
+                    return handleSortByDate();
 
                 default:
                     throw new VoyagerException("OOPS!!! I'm sorry, but I don't know what that means :-(");
@@ -200,5 +207,42 @@ public class Voyager {
             }
         }
         return ui.showFoundTasks(matchingTasks);
+    }
+
+    /**
+     * Sorts the task list alphabetically by description.
+     *
+     * @throws IOException      If saving to disk fails.
+     * @return A confirmation message with the sorted list.
+     */
+    private String handleSortByName() throws IOException{
+        taskList.getAll().sort((t1, t2) ->
+                t1.getDescription().compareToIgnoreCase(t2.getDescription()));
+
+        storage.save(taskList.getAll());
+        return ui.showList(taskList.getAll());
+    }
+
+    /**
+     * Sorts tasks such that Deadlines come first (by date), followed by others.
+     *
+     * @throws IOException      If saving to disk fails.
+     * @return A confirmation message with the sorted list.
+     */
+    private String handleSortByDate() throws IOException {
+        taskList.getAll().sort((t1, t2) -> {
+            boolean isT1Deadline = t1 instanceof Deadline;
+            boolean isT2Deadline = t2 instanceof Deadline;
+
+            if (isT1Deadline && isT2Deadline) {
+                return ((Deadline) t1).getBy().compareTo(((Deadline) t2).getBy());
+            }
+            if (isT1Deadline) return -1;
+            if (isT2Deadline) return 1;
+            return 0;
+        });
+
+        storage.save(taskList.getAll());
+        return ui.showList(taskList.getAll());
     }
 }
