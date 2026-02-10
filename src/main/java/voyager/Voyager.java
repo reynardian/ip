@@ -62,14 +62,15 @@ public class Voyager {
                     return ui.showTaskAdded(todo, taskList.size());
 
                 case "deadline":
-                    String[] dParts = args.split("/by");
-                    if (dParts.length < 2) {
+                    String[] deadlineParts = args.split("/by");
+                    assert deadlineParts != null : "Split operation on arguments should never return null";
+                    if (deadlineParts.length < 2) {
                         throw new VoyagerException("OOPS!!! Please use: deadline [desc] /by [yyyy-mm-dd]");
                     }
                     try {
                         voyager.task.Task deadline = new voyager.task.Deadline(
-                                dParts[0].trim(),
-                                LocalDate.parse(dParts[1].trim()));
+                                deadlineParts[0].trim(),
+                                LocalDate.parse(deadlineParts[1].trim()));
                         taskList.add(deadline);
                         storage.save(taskList.getAll());
                         return ui.showTaskAdded(deadline, taskList.size());
@@ -78,14 +79,15 @@ public class Voyager {
                     }
 
                 case "event":
-                    String[] eParts = args.split("/from|/to");
-                    if (eParts.length < 3) {
+                    String[] eventParts = args.split("/from|/to");
+                    assert eventParts != null : "Split operation on arguments should never return null";
+                    if (eventParts.length < 3) {
                         throw new VoyagerException("OOPS!!! Please use: event [desc] /from [start] /to [end]");
                     }
                     voyager.task.Task event = new voyager.task.Event(
-                            eParts[0].trim(),
-                            eParts[1].trim(),
-                            eParts[2].trim());
+                            eventParts[0].trim(),
+                            eventParts[1].trim(),
+                            eventParts[2].trim());
                     taskList.add(event);
                     storage.save(taskList.getAll());
                     return ui.showTaskAdded(event, taskList.size());

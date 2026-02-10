@@ -40,8 +40,12 @@ public class Ui {
      * Confirms a task was added and returns the message as a String.
      */
     public String showTaskAdded(Task task, int size) {
-        return "Got it. I've added this task:\n  " + task +
+        String message = "Got it. I've added this task:\n  " + task +
                 "\nNow you have " + size + " tasks in the list.";
+
+        // Assumption: Every UI response must have a body.
+        assert !message.isEmpty() : "UI response message should not be empty";
+        return message;
     }
 
     /**
