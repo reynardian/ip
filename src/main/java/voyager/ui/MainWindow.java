@@ -10,11 +10,12 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-
 import voyager.Voyager;
 
 /**
- * Controller for MainWindow. Provides the layout for the other controls.
+ * Controller for the main GUI window.
+ * Provides the interface for the user to interact with Voyager, including
+ * the scrollable dialog container, text input field, and send button.
  */
 public class MainWindow extends AnchorPane {
     @FXML
@@ -32,11 +33,20 @@ public class MainWindow extends AnchorPane {
             50, 50, true, true);
     private final Image VOYAGER_IMAGE = new Image(this.getClass().getResourceAsStream("/images/Voyager.png"),
             50, 50, true, true);
+
+    /**
+     * Initializes the controller. Sets up the scroll pane to automatically
+     * scroll to the bottom when new messages are added.
+     */
     @FXML
     public void initialize() {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
     }
 
+    /**
+     * Injects the Voyager instance and displays the initial welcome message.
+     * * @param v The Voyager logic instance to be used by the GUI.
+     */
     public void setVoyager(Voyager v) {
         voyager = v;
 
@@ -48,6 +58,8 @@ public class MainWindow extends AnchorPane {
 
     /**
      * Creates two dialog boxes, one echoing user input and the other containing Voyager's reply.
+     * Clears the user input after processing. If the input is "bye", the application
+     * will exit after a short delay.
      */
     @FXML
     private void handleUserInput() {
