@@ -1,13 +1,11 @@
 package voyager;
 
-import voyager.task.Event;
-import voyager.task.Deadline;
 import voyager.exception.VoyagerException;
 import voyager.task.Storage;
-import voyager.task.Task;
 import voyager.ui.Parser;
 import voyager.ui.Ui;
 
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.time.LocalDate;
 import java.util.List;
@@ -34,112 +32,101 @@ public class Voyager {
     }
 
     /**
-     * Starts the main program loop.
-     * Processes user input until the "bye" command is received.
+     * Generates a response for the user's chat message.
+     *
+     * @param input The raw user input from the GUI text field.
+     * @return The formatted response string from the chatbot.
      */
-    public void run() {
-        ui.showWelcome();
+    public String getResponse(String input) {
+        try {
+            String command = Parser.getCommandWord(input);
+            String args = Parser.getArguments(input);
 
-        while (true) {
-            String input = ui.readCommand();
-            ui.showLine();
+            switch (command) {
+                case "welcome_trigger":
+                    return ui.showWelcome();
 
-            try {
-                String command = Parser.getCommandWord(input);
-                String args = Parser.getArguments(input);
+                case "bye":
+                    return ui.showGoodbye();
 
-                switch (command) {
-                    case "bye":
-                        ui.showGoodbye();
-                        return;
+                case "list":
+                    return ui.showList(taskList.getAll());
 
-                    case "list":
-                        ui.showList(taskList.getAll());
-                        break;
+                case "todo":
+                    if (args.isEmpty()) {
+                        throw new VoyagerException("OOPS!!! The description of a todo cannot be empty.");
+                    }
+                    voyager.task.Task todo = new voyager.task.ToDo(args);
+                    taskList.add(todo);
+                    storage.save(taskList.getAll());
+                    return ui.showTaskAdded(todo, taskList.size());
 
-                    case "todo":
-                        if (args.isEmpty()) {
-                            throw new VoyagerException(
-                                    "OOPS!!! The description of a todo cannot be empty.");
-                        }
-                        voyager.task.Task todo = new voyager.task.ToDo(args);
-                        taskList.add(todo);
-                        storage.save(taskList.getAll());
-                        ui.showTaskAdded(todo, taskList.size());
-                        break;
-
-                    case "deadline":
-                        String[] dParts = args.split("/by");
-                        voyager.task.Task deadline = new Deadline(
+                case "deadline":
+                    String[] dParts = args.split("/by");
+                    if (dParts.length < 2) {
+                        throw new VoyagerException("OOPS!!! Please use: deadline [desc] /by [yyyy-mm-dd]");
+                    }
+                    try {
+                        voyager.task.Task deadline = new voyager.task.Deadline(
                                 dParts[0].trim(),
                                 LocalDate.parse(dParts[1].trim()));
                         taskList.add(deadline);
                         storage.save(taskList.getAll());
-                        ui.showTaskAdded(deadline, taskList.size());
-                        break;
+                        return ui.showTaskAdded(deadline, taskList.size());
+                    } catch (DateTimeParseException e) {
+                        throw new VoyagerException("OOPS!!! Please enter the date in yyyy-mm-dd format.");
+                    }
 
-                    case "event":
-                        String[] eParts = args.split("/from|/to");
-                        voyager.task.Task event = new Event(
-                                eParts[0].trim(),
-                                eParts[1].trim(),
-                                eParts[2].trim());
-                        taskList.add(event);
-                        storage.save(taskList.getAll());
-                        ui.showTaskAdded(event, taskList.size());
-                        break;
+                case "event":
+                    String[] eParts = args.split("/from|/to");
+                    if (eParts.length < 3) {
+                        throw new VoyagerException("OOPS!!! Please use: event [desc] /from [start] /to [end]");
+                    }
+                    voyager.task.Task event = new voyager.task.Event(
+                            eParts[0].trim(),
+                            eParts[1].trim(),
+                            eParts[2].trim());
+                    taskList.add(event);
+                    storage.save(taskList.getAll());
+                    return ui.showTaskAdded(event, taskList.size());
 
-                    case "mark":
-                        voyager.task.Task marked = taskList.mark(Integer.parseInt(args) - 1);
-                        storage.save(taskList.getAll());
-                        ui.showTaskMarked(marked);
-                        break;
+                case "mark":
+                    voyager.task.Task marked = taskList.mark(Integer.parseInt(args) - 1);
+                    storage.save(taskList.getAll());
+                    return ui.showTaskMarked(marked);
 
-                    case "unmark":
-                        voyager.task.Task unmarked = taskList.unmark(Integer.parseInt(args) - 1);
-                        storage.save(taskList.getAll());
-                        ui.showTaskUnmarked(unmarked);
-                        break;
+                case "unmark":
+                    voyager.task.Task unmarked = taskList.unmark(Integer.parseInt(args) - 1);
+                    storage.save(taskList.getAll());
+                    return ui.showTaskUnmarked(unmarked);
 
-                    case "delete":
-                        voyager.task.Task removed = taskList.remove(Integer.parseInt(args) - 1);
-                        storage.save(taskList.getAll());
-                        ui.showTaskRemoved(removed, taskList.size());
-                        break;
+                case "delete":
+                    voyager.task.Task removed = taskList.remove(Integer.parseInt(args) - 1);
+                    storage.save(taskList.getAll());
+                    return ui.showTaskRemoved(removed, taskList.size());
 
-                    case "find":
-                        if (args.isEmpty()) {
-                            throw new VoyagerException("OOPS!!! The search keyword cannot be empty.");
+                case "find":
+                    if (args.isEmpty()) {
+                        throw new VoyagerException("OOPS!!! The search keyword cannot be empty.");
+                    }
+                    List<voyager.task.Task> allTasks = taskList.getAll();
+                    List<voyager.task.Task> matchingTasks = new ArrayList<>();
+                    for (voyager.task.Task task : allTasks) {
+                        if (task.getDescription().toLowerCase().contains(args.toLowerCase())) {
+                            matchingTasks.add(task);
                         }
+                    }
+                    return ui.showFoundTasks(matchingTasks);
 
-                        List<voyager.task.Task> allTasks = taskList.getAll();
-                        List<Task> matchingTasks = new ArrayList<>();
-
-                        for (voyager.task.Task task : allTasks) {
-                            if (task.getDescription().toLowerCase().contains(args.toLowerCase())) {
-                                matchingTasks.add(task);
-                            }
-                        }
-
-                        ui.showFoundTasks(matchingTasks);
-                        break;
-
-                    default:
-                        throw new VoyagerException(
-                                "OOPS!!! I'm sorry, but I don't know what that means :-(");
-                }
-
-            } catch (Exception e) {
-                ui.showError(e.getMessage());
+                default:
+                    throw new VoyagerException("OOPS!!! I'm sorry, but I don't know what that means :-(");
             }
+        } catch (VoyagerException e) {
+            return e.getMessage();
+        } catch (NumberFormatException e) {
+            return "OOPS!!! Please enter a valid task number.";
+        } catch (Exception e) {
+            return "An unexpected error occurred: " + e.getMessage();
         }
-    }
-
-    /**
-     * Entry point for launching the Voyager application.
-     * * @param args Command line arguments (not used).
-     */
-    public static void main(String[] args) {
-        new Voyager().run();
     }
 }

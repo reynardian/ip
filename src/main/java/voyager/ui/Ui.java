@@ -1,150 +1,104 @@
 package voyager.ui;
 
 import voyager.task.Task;
-
 import java.util.List;
-import java.util.Scanner;
 
 /**
- * Handles all user interface interactions for the Voyager application.
- * Responsible for reading input from the console and displaying messages to the user.
+ * Handles user interface interactions for the Voyager application.
+ * In GUI mode, these methods return Strings to be displayed in the chat interface.
  */
 public class Ui {
-    private static final String LINE = "_".repeat(60);
-    private final Scanner scanner = new Scanner(System.in);
-
     /**
-     * Displays the opening welcome message to the user.
+     * Returns the opening welcome message.
      */
-    public void showWelcome() {
-        System.out.println(LINE);
-        System.out.println("Hello! I'm Voyager");
-        System.out.println("What can I do for you?");
-        System.out.println(LINE);
+    public String showWelcome() {
+        return "Hello! I'm Voyager\nWhat can I do for you?";
     }
 
     /**
-     * Displays the closing goodbye message.
+     * Returns the closing goodbye message.
      */
-    public void showGoodbye() {
-        System.out.println("Bye. Hope to see you again soon!");
-        System.out.println(LINE);
+    public String showGoodbye() {
+        return "Bye. Hope to see you again soon!";
     }
 
     /**
-     * Reads the next line of input from the user.
-     *
-     * @return The full string entered by the user.
+     * Returns an error message.
      */
-    public String readCommand() {
-        return scanner.nextLine();
+    public String showError(String message) {
+        return message;
     }
 
     /**
-     * Prints a horizontal divider line to the console.
+     * Returns a general message.
      */
-    public void showLine() {
-        System.out.println(LINE);
+    public String showMessage(String message) {
+        return message;
     }
 
     /**
-     * Displays an error message.
-     *
-     * @param message The error message to be displayed.
+     * Confirms a task was added and returns the message as a String.
      */
-    public void showError(String message) {
-        System.out.println(message);
+    public String showTaskAdded(Task task, int size) {
+        return "Got it. I've added this task:\n  " + task +
+                "\nNow you have " + size + " tasks in the list.";
     }
 
     /**
-     * Displays a general message to the user.
-     *
-     * @param message The message to be displayed.
+     * Confirms a task was removed.
      */
-    public void showMessage(String message) {
-        System.out.println(message);
+    public String showTaskRemoved(Task task, int size) {
+        return "Noted. I've removed this task:\n  " + task +
+                "\nNow you have " + size + " tasks in the list.";
     }
 
     /**
-     * Displays a general message to the user.
-     *
-     * @param message The message to be displayed.
+     * Confirms a task was marked as done.
      */
-    /**
-     * Confirms the successful addition of a task and displays the current list size.
-     *
-     * @param task The task that was added.
-     * @param size The current number of tasks in the list.
-     */
-    public void showTaskAdded(Task task, int size) {
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + task);
-        System.out.println("Now you have " + size + " tasks in the list.");
+    public String showTaskMarked(Task task) {
+        return "Nice! I've marked this task as done:\n  " + task;
     }
 
     /**
-     * Confirms the removal of a task and displays the current list size.
-     *
-     * @param task The task that was removed.
-     * @param size The current number of tasks in the list.
+     * Confirms a task was unmarked.
      */
-    public void showTaskRemoved(Task task, int size) {
-        System.out.println("Noted. I've removed this task:");
-        System.out.println("  " + task);
-        System.out.println("Now you have " + size + " tasks in the list.");
+    public String showTaskUnmarked(Task task) {
+        return "OK, I've marked this task as not done yet:\n  " + task;
     }
 
     /**
-     * Confirms that a task has been marked as completed.
-     *
-     * @param task The task that was marked.
+     * Returns the entire list of tasks as a single formatted String.
      */
-    public void showTaskMarked(Task task) {
-        System.out.println("Nice! I've marked this task as done:");
-        System.out.println("  " + task);
-    }
-
-    /**
-     * Confirms that a task has been marked as not completed.
-     *
-     * @param task The task that was unmarked.
-     */
-    public void showTaskUnmarked(Task task) {
-        System.out.println("OK, I've marked this task as not done yet:");
-        System.out.println("  " + task);
-    }
-
-    /**
-     * Displays the entire list of tasks with their corresponding indices.
-     *
-     * @param tasks The list of tasks to be displayed.
-     */
-    public void showList(List<Task> tasks) {
+    public String showList(List<Task> tasks) {
         if (tasks.isEmpty()) {
-            System.out.println("Your task list is empty.");
-            return;
+            return "Your task list is empty.";
         }
 
-        System.out.println("Here are the tasks in your list:");
+        StringBuilder sb = new StringBuilder("Here are the tasks in your list:\n");
         for (int i = 0; i < tasks.size(); i++) {
-            System.out.println((i + 1) + "." + tasks.get(i));
+            sb.append((i + 1)).append(".").append(tasks.get(i));
+            if (i < tasks.size() - 1) {
+                sb.append("\n");
+            }
         }
+        return sb.toString();
     }
 
     /**
-     * Displays the results of a search query to the user.
-     *
-     * @param tasks The list of tasks that matched the search keyword.
+     * Returns the matching search results as a single formatted String.
      */
-    public void showFoundTasks(List<Task> tasks) {
+    public String showFoundTasks(List<Task> tasks) {
         if (tasks.isEmpty()) {
-            System.out.println("No matching tasks found in your list.");
-            return;
+            return "No matching tasks found in your list.";
         }
 
-        System.out.println("Here are the matching tasks in your list:");
+        StringBuilder sb = new StringBuilder("Here are the matching tasks in your list:\n");
         for (int i = 0; i < tasks.size(); i++) {
-            System.out.println((i + 1) + "." + tasks.get(i));
+            sb.append((i + 1)).append(".").append(tasks.get(i));
+            if (i < tasks.size() - 1) {
+                sb.append("\n");
+            }
         }
+        return sb.toString();
     }
 }

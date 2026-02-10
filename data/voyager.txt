@@ -1,5 +1,0 @@
-E | 1 | Debussy Rehearsal | 09.00 | 12.00
-T | 0 | Score Study
-D | 0 | Return book | 2019-12-02
-T | 0 | Lunch
-T | 1 | Rehearsal
