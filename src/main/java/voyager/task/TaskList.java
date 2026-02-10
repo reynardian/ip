@@ -42,6 +42,7 @@ public class TaskList {
      * @param task Task to add.
      */
     public void add(voyager.task.Task task) {
+        assert task != null : "TaskList should not contain null tasks";
         tasks.add(task);
     }
 

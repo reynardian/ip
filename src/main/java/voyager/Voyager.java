@@ -123,6 +123,7 @@ public class Voyager {
      */
     private String handleDeadline(String args) throws VoyagerException, IOException {
         String[] deadlineParts = args.split(DEADLINE_DELIMITER);
+        assert deadlineParts != null : "Split operation on arguments should never return null";
         if (deadlineParts.length < 2) {
             throw new VoyagerException("OOPS!!! Please use: deadline [desc] /by [yyyy-mm-dd]");
         }
@@ -148,13 +149,14 @@ public class Voyager {
      */
     private String handleEvent(String args) throws VoyagerException, IOException { // Add IOException here
         String regex = EVENT_FROM_DELIMITER + "|" + EVENT_TO_DELIMITER;
-        String[] parts = args.split(regex);
+        String[] eventParts = args.split(regex);
+        assert eventParts != null : "Split operation on arguments should never return null";
 
-        if (parts.length < 3) {
+        if (eventParts.length < 3) {
             throw new VoyagerException("OOPS!!! Please use: event [desc] /from [start] /to [end]");
         }
 
-        Task event = new Event(parts[0].trim(), parts[1].trim(), parts[2].trim());
+        Task event = new Event(eventParts[0].trim(), eventParts[1].trim(), eventParts[2].trim());
         taskList.add(event);
         storage.save(taskList.getAll()); // This is the line that needs the throws clause
         return ui.showTaskAdded(event, taskList.size());
